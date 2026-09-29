@@ -1,0 +1,474 @@
+@import 'tailwindcss';
+
+/*
+ * Stash design tokens.
+ * The interface itself is monochrome (paper, ink, graphite, lines); colour
+ * comes only from data — the language colours of each project's fingerprint
+ * and file-type tints — plus green/red for status.
+ */
+@theme static {
+  --font-sans: 'Heebo Variable', 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-paper: #eef0f3;
+  --color-surface: #ffffff;
+  --color-sunken: #e5e8ed;
+  --color-ink: #161a22;
+  --color-on-ink: #ffffff;
+  --color-graphite: #5a6273;
+  --color-mist: #8a93a3;
+  --color-line: #d9dee6;
+  --color-line-strong: #bcc4d0;
+  --color-ok: #12825b;
+  --color-danger: #c4372b;
+  --color-warn: #9a5800;
+  --color-scrim: #0d1016;
+  /* The development team's work: planning, writing, self-correcting, passing. */
+  --color-plan: #2563eb;
+  --color-gen: #b88700;
+  --color-fix: #e05a0c;
+  --color-pass: #15924f;
+}
+
+:root {
+  color-scheme: light dark;
+  /* Latin display face with a width axis; Hebrew letters fall back to Heebo. */
+  --font-latin: 'Archivo Variable', 'Heebo Variable', ui-sans-serif, system-ui, sans-serif;
+  /* Fingerprint neutrals for non-code files. */
+  --fp-docs: #a4acba;
+  --fp-data: #c5cbd5;
+  --fp-asset: #8d96a6;
+  --fp-other: #b8bec8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: #14171d;
+    --color-surface: #1b1f27;
+    --color-sunken: #242934;
+    --color-ink: #e8ebf1;
+    --color-on-ink: #14171d;
+    --color-graphite: #98a0af;
+    --color-mist: #6f7889;
+    --color-line: #2a303b;
+    --color-line-strong: #3b4351;
+    --color-ok: #3dbd88;
+    --color-danger: #f0715f;
+    --color-warn: #f0b24f;
+    --color-plan: #6ea8fe;
+    --color-gen: #f5c542;
+    --color-fix: #ff9a52;
+    --color-pass: #45cf86;
+    --fp-docs: #5b6474;
+    --fp-data: #454d5b;
+    --fp-asset: #6c7586;
+    --fp-other: #505866;
+  }
+}
+
+/*
+ * Hebrew text is set in Heebo. Archivo's width axis still gives Latin names and
+ * figures an expanded cut (identity) and a condensed cut (numbers); any Hebrew
+ * letters in those elements fall back to Heebo.
+ */
+@utility font-wide {
+  font-family: var(--font-latin);
+  font-stretch: 125%;
+}
+@utility font-semi-wide {
+  font-family: var(--font-latin);
+  font-stretch: 112%;
+}
+@utility font-narrow {
+  font-family: var(--font-latin);
+  font-stretch: 78%;
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  html {
+    /* Reserve the scrollbar's space so dialogs (which lock scrolling) never shift the page. */
+    scrollbar-gutter: stable;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  button:not(:disabled),
+  [role='tab'] {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-ink) 16%, transparent);
+  }
+  input[type='search']::-webkit-search-cancel-button {
+    appearance: none;
+  }
+}
+
+/* Fingerprint: bars rise from the baseline once (on first load and after analysis). */
+.fp-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+/* Right-to-left pages: the fingerprint reads from the right, like the text around it. */
+[dir='rtl'] .fp-svg {
+  transform: scaleX(-1);
+}
+.fp-draw .fp-bar {
+  animation: fp-rise 640ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation-delay: calc(var(--fp-delay, 0ms) + var(--i) * 13ms);
+}
+.fp-listen .fp-bar {
+  animation: fp-listen 1.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -70ms);
+}
+@keyframes fp-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes fp-listen {
+  0%,
+  100% {
+    transform: scaleY(0.2);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+/* "Already saved" ring on an existing link card. */
+.ring-flash {
+  animation: ring-flash 2s ease-out forwards;
+}
+@keyframes ring-flash {
+  0%,
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-draw .fp-bar,
+  .fp-listen .fp-bar {
+    animation: none;
+  }
+}
+
+/* Code viewer and README code blocks: token colours tuned for both themes. */
+:root {
+  --code-keyword: #7c3aed;
+  --code-string: #1a7f4b;
+  --code-number: #b4540a;
+  --code-title: #2459b3;
+  --code-type: #0f766e;
+  --code-attr: #8a6200;
+  --code-comment: #8a93a3;
+  --code-meta: #5a6273;
+  --font-code: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --code-keyword: #b99cff;
+    --code-string: #5fd39a;
+    --code-number: #f5a661;
+    --code-title: #7fb0ff;
+    --code-type: #4fd1c5;
+    --code-attr: #e8c35a;
+    --code-comment: #6f7889;
+    --code-meta: #98a0af;
+  }
+}
+.hljs-comment,
+.hljs-quote {
+  color: var(--code-comment);
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-doctag,
+.hljs-name,
+.hljs-section {
+  color: var(--code-keyword);
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: var(--code-string);
+}
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+  color: var(--code-number);
+}
+.hljs-title,
+.hljs-title.function_,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: var(--code-title);
+}
+.hljs-built_in,
+.hljs-type,
+.hljs-title.class_ {
+  color: var(--code-type);
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-property {
+  color: var(--code-attr);
+}
+.hljs-meta {
+  color: var(--code-meta);
+}
+.hljs-deletion {
+  color: var(--color-danger);
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 600;
+}
+
+/* Rendered Markdown (READMEs). Each block sets dir="auto", so Hebrew and English paragraphs align correctly. */
+.md {
+  max-width: 78ch;
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+.md > * + * {
+  margin-top: 0.9em;
+}
+.md h1,
+.md h2,
+.md h3,
+.md h4 {
+  font-weight: 700;
+  line-height: 1.3;
+}
+.md h1 {
+  font-size: 1.75em;
+  font-weight: 800;
+}
+.md h2 {
+  margin-top: 1.6em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 1.35em;
+}
+.md h3 {
+  margin-top: 1.4em;
+  font-size: 1.12em;
+}
+.md > :first-child {
+  margin-top: 0;
+}
+.md p,
+.md li {
+  color: color-mix(in oklab, var(--color-ink) 86%, var(--color-graphite));
+}
+.md a {
+  text-decoration: underline;
+  text-decoration-color: var(--color-line-strong);
+  text-underline-offset: 3px;
+}
+.md a:hover {
+  text-decoration-color: currentColor;
+}
+.md ul,
+.md ol {
+  padding-inline-start: 1.4em;
+}
+.md ul {
+  list-style: disc;
+}
+.md ol {
+  list-style: decimal;
+}
+.md li + li {
+  margin-top: 0.3em;
+}
+.md li > input[type='checkbox'] {
+  margin-inline-end: 0.45em;
+}
+.md code {
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+  background: var(--color-sunken);
+  font-family: var(--font-code);
+  font-size: 0.86em;
+}
+.md pre {
+  overflow-x: auto;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--color-sunken);
+  font-size: 13.5px;
+  line-height: 1.6;
+  text-align: left;
+}
+.md pre code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+.md blockquote {
+  padding-inline-start: 1em;
+  border-inline-start: 3px solid var(--color-line-strong);
+  color: var(--color-graphite);
+}
+.md img {
+  max-width: 100%;
+  border-radius: 10px;
+}
+.md table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.md th,
+.md td {
+  padding: 6px 12px;
+  border: 1px solid var(--color-line);
+}
+.md th {
+  background: var(--color-sunken);
+  font-weight: 600;
+}
+.md hr {
+  margin: 2em 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+
+/* Transparent images in the code viewer sit on a checkerboard. */
+.checker {
+  background-color: var(--color-surface);
+  background-image: conic-gradient(var(--color-sunken) 25%, transparent 0 50%, var(--color-sunken) 0 75%, transparent 0);
+  background-size: 20px 20px;
+}
+
+/* Text that can mix Hebrew and English (messages from the server, AI or GitHub):
+   each paragraph takes its direction from its first letter. */
+@utility bidi-plain {
+  unicode-bidi: plaintext;
+}
+
+/* The caret under an answer that is still being written. */
+.typing-caret {
+  display: inline-block;
+  width: 0.45em;
+  height: 1.05em;
+  margin-top: 0.25rem;
+  background: currentColor;
+  opacity: 0.5;
+  animation: caret-blink 1s steps(2, start) infinite;
+}
+/* The development team's live dashboard: a planned file slides into the tree; a charge rises above the balance and fades. */
+.tree-in {
+  animation: tree-in 0.35s ease-out both;
+}
+@keyframes tree-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.credit-delta {
+  animation: credit-delta 1.8s ease-out forwards;
+}
+@keyframes credit-delta {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  15%,
+  70% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tree-in,
+  .credit-delta {
+    animation: none;
+  }
+}
+
+@keyframes caret-blink {
+  to {
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .typing-caret {
+    animation: none;
+  }
+}
+/* Chat answers read a little tighter than a README. */
+.md-chat {
+  font-size: 15px;
+}
+.md-chat > :first-child {
+  margin-top: 0;
+}
+.md-chat > :last-child {
+  margin-bottom: 0;
+}
+
+/* Chat: the conversation menu grows from its three-dot button; the microphone pulses while it records. */
+.menu-pop {
+  animation: menu-pop 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes menu-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.mic-live {
+  animation: mic-pulse 1.4s ease-out infinite;
+}
+@keyframes mic-pulse {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-danger) 45%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-pop,
+  .mic-live {
+    animation: none;
+  }
+}
+
+/* The credits dialog's coin: a warm disc in either color scheme. */
+.coin {
+  background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--color-warn) 28%, var(--color-surface)), color-mix(in oklab, var(--color-warn) 12%, var(--color-surface)) 72%);
+  box-shadow: 0 0 0 8px color-mix(in oklab, var(--color-warn) 9%, transparent);
+}

@@ -1,0 +1,41 @@
+{
+  "name": "@stash/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "node --watch-path=src src/index.js",
+    "start": "node src/index.js --serve-client",
+    "test": "node --test --test-reporter=spec",
+    "smoke": "node scripts/smoke.js",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:import": "node scripts/import-local.js",
+    "credits": "node scripts/credits.js"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.29.9",
+    "@babel/traverse": "^7.29.8",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "adm-zip": "^0.6.1",
+    "cheerio": "^1.2.0",
+    "e2b": "^2.51.0",
+    "express": "^5.2.1",
+    "globals": "^16.5.0",
+    "ipaddr.js": "^2.5.0",
+    "jose": "^6.2.12",
+    "multer": "^2.4.0",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
+    "prisma": "7.10.0"
+  }
+}

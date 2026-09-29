@@ -1,0 +1,103 @@
+// Stash's database: PostgreSQL (Supabase in production), through Prisma.
+//
+// Every table below belongs to one person: rows carry the user's id, and every query the server
+// makes filters by it. A schema change is a new migration: edit this file, then run
+// `npm run db:migrate:dev -w server` against a development database to create it, and
+// `npm run db:migrate -w server` to apply migrations (see README).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Someone with an account. The id is their Supabase Auth user id (the access token's `sub`).
+/// The row is created the first time they use the chat.
+model User {
+  id           String        @id @db.Uuid
+  email        String        @unique
+  name         String?
+  avatarUrl    String?       @map("avatar_url")
+  /// Ready for billing: the plan the user is on.
+  plan         String        @default("free")
+  /// What the user may still spend on AI (server/src/services/credits.js). New accounts start with 50.
+  credits      Int           @default(50)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  lastSeenAt   DateTime      @default(now()) @map("last_seen_at")
+  chatSessions ChatSession[]
+  memories     Memory[]
+
+  @@map("users")
+}
+
+/// A conversation. Its messages are kept in order as JSON, each with its route, cost and files.
+/// The columns after them summarize it for the conversation list, which never reads the messages.
+model ChatSession {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String   @default("")
+  workspace    String?
+  messages     Json     @default("[]")
+  /// The conversation's project_state.md summary, how far it covers, and the calls that wrote it.
+  memory       Json?
+  messageCount Int      @default(0) @map("message_count")
+  /// Estimated cost in USD; null when no call had a known price.
+  cost         Float?
+  tokens       Int      @default(0)
+  createdAt    DateTime @default(now()) @map("created_at")
+  /// Set by the app when the conversation moves (a message), not by every change (a rename).
+  updatedAt    DateTime @default(now()) @map("updated_at")
+  memories     Memory[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+  @@map("chat_sessions")
+}
+
+/// A long-term memory: something learned about how the person works, or added by them.
+model Memory {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind           MemoryKind
+  content        String
+  /// The project a rule belongs to; null when it applies everywhere.
+  project        String?      @db.VarChar(120)
+  source         MemorySource
+  /// The conversation it was learned in; cleared when that conversation is deleted.
+  chatSessionId  String?      @map("chat_session_id") @db.Uuid
+  chatSession    ChatSession? @relation(fields: [chatSessionId], references: [id], onDelete: SetNull)
+  /// A normalized float32 vector, and the provider/model that made it.
+  embedding      Bytes?
+  embeddingModel String?      @map("embedding_model") @db.VarChar(120)
+  /// How often it was learned again, and how often it was given to a model.
+  confirmations  Int          @default(1)
+  uses           Int          @default(0)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  /// Set by the app when the memory changes, not when it's used.
+  updatedAt      DateTime     @default(now()) @map("updated_at")
+  lastUsedAt     DateTime?    @map("last_used_at")
+
+  @@index([userId, kind])
+  @@index([chatSessionId])
+  @@map("memories")
+}
+
+enum MemoryKind {
+  preference
+  style
+  rule
+  fact
+
+  @@map("memory_kind")
+}
+
+enum MemorySource {
+  learned
+  user
+
+  @@map("memory_source")
+}

@@ -1,0 +1,24 @@
+{
+  "name": "stash-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal assets & project management dashboard: smart ZIP projects, link previews, and file storage.",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names server,client --prefix-colors cyan,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "render:build": "npm run db:migrate -w server && npm run build",
+    "start": "npm run build && npm run start -w server",
+    "test": "npm test -w server",
+    "smoke": "npm run smoke -w server --"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}
